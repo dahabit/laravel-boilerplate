@@ -21,13 +21,13 @@ html body {
         margin: 0;
         padding: 0;
         color: #323232;
-        background: #cccccc; }
+        background: #FFFAFA;
+}
 
 html body .container-fluid {
         padding: 0; }
             
 footer {
-        /*margin-top:20px;*/
         height:160px;
         color: #666;
         background: #222;
@@ -43,7 +43,8 @@ footer {
 }
 
 .wrapper .container .hero-unit {
-            text-align:center; }
+
+}
 
 .push {
             height: 160px; }
