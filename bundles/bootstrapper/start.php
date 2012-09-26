@@ -29,13 +29,14 @@ Autoloader::map(array(
 	'Bootstrapper\\Progress'            => __DIR__.'/progress.php',
 	'Bootstrapper\\SplitDropdownButton' => __DIR__.'/splitdropdownbutton.php',
 	'Bootstrapper\\Tabbable'            => __DIR__.'/tabbable.php',
+	'Bootstrapper\\Tables'              => __DIR__.'/tables.php',
 	'Bootstrapper\\Typeahead'           => __DIR__.'/typeahead.php',
 ));
 
 Asset::container('bootstrapper')->bundle('bootstrapper');
 
-//Asset::container('bootstrapper')->add('jquery',  'js/jquery-1.8.0.js');
-Asset::container('bootstrapper')->add('jquery',  'js/jquery-1.8.0.min.js');
+//Asset::container('bootstrapper')->add('jquery',  'js/jquery-1.8.1.js');
+Asset::container('bootstrapper')->add('jquery',  'js/jquery-1.8.1.min.js');
 
 //Asset::container('bootstrapper')->add('bootstrap',  'css/bootstrap.css');
 Asset::container('bootstrapper')->add('bootstrap',  'css/bootstrap.min.css');

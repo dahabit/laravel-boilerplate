@@ -4,7 +4,7 @@ use \HTML;
 
 /**
  * Buttons methods for creating Twitter Bootstrap buttons.
- * 
+ *
  * @package     Bundles
  * @subpackage  Twitter
  * @author      Patrick Talmadge - Follow @patricktalmadge
@@ -13,8 +13,40 @@ use \HTML;
  */
 class Buttons
 {
+	private static $instance = null;
+
 	/**
-	 * Create a HTML submit input element. 
+	 * The current button in memory
+	 * @var array
+	 */
+	private $currentButton = array();
+
+	/**
+	 * Stores the current button for future output
+	 *
+	 * @param  string  $type        A button type
+	 * @param  string  $value       Its text value
+	 * @param  array   $attributes  An array of attributes
+	 * @param  boolean $hasDropdown Whether the button has a dropdown
+	 */
+	private static function storeButton($type, $value, $attributes, $hasDropdown)
+	{
+		// If we don't have an instance stored, create a new one
+		$currentInstance = self::$instance ?: new Buttons;
+
+		// Define new button
+		$currentInstance->currentButton = array(
+			'type'        => $type,
+			'value'       => $value,
+			'attributes'  => $attributes,
+			'hasDropdown' => $hasDropdown,
+		);
+
+		return $currentInstance;
+	}
+
+	/**
+	 * Create a HTML submit input element.
 	 * Overriding the default input submit button from Laravel\Form
 	 *
 	 * @param  string  $value
@@ -25,7 +57,7 @@ class Buttons
 	public static function submit($value, $attributes = array(), $hasDropdown = false)
 	{
 		$attributes['type'] = 'submit';
-		return static::normal($value, $attributes, $hasDropdown);
+		return static::storeButton('normal', $value, $attributes, $hasDropdown);
 	}
 
 	/**
@@ -40,7 +72,7 @@ class Buttons
 	public static function reset($value, $attributes = array(), $hasDropdown = false)
 	{
 		$attributes['type'] = 'reset';
-		return static::normal($value, $attributes, $hasDropdown);
+		return static::storeButton('normal', $value, $attributes, $hasDropdown);
 	}
 
 	/**
@@ -54,19 +86,8 @@ class Buttons
 	 */
 	public static function normal($value, $attributes = array(), $hasDropdown = false)
 	{
-		if(!isset($attributes['type'])){ $attributes['type'] = 'button'; }
-		$attributes = Helpers::add_class($attributes, 'btn');
-		$extra = '';
-		if ($hasDropdown)
-		{
-			$attributes = Helpers::add_class($attributes, 'dropdown-toggle');
-			$extra = ' <span class="caret"></span>';
-			$attributes['data-toggle'] = 'dropdown';
-		}
-		
-        return '<button'.HTML::attributes($attributes).'>'.(string)$value.$extra.'</button>';
+		return static::storeButton('normal', $value, $attributes, $hasDropdown);
 	}
-
 
 	/**
 	 * Create a HTML anchor tag styled like a button element.
@@ -80,18 +101,50 @@ class Buttons
 	public static function link($value, $url, $attributes = array(), $hasDropdown = false)
 	{
 		$attributes['href'] = \URL::to($url);
+		return static::storeButton('link', $value, $attributes, $hasDropdown);
+	}
 
-		$attributes = Helpers::add_class($attributes, 'btn');
+	/**
+	 * Adds an icon to the next button
+	 *
+	 * @param  string  $icon        The name of the icon to call
+	 * @param  array   $attributes  Attributes to pass to the generated icon
+   * @param  boolean $prependIcon Whether we should prepend the icon, or append it
+	 */
+	public function with_icon($icon, $attributes = array(), $prependIcon = true)
+	{
+		// Call Icons to create the icon
+		$icon = Icons::make($icon);
 
-		$extra = '';
-		if ($hasDropdown)
-		{
-			$attributes = Helpers::add_class($attributes, 'dropdown-toggle');
-			$extra = ' <span class="caret"></span>';
-			$attributes['data-toggle'] = 'dropdown';
+		// If there was no text, just use the icon, else put a space between
+		$value = $this->currentButton['value'];
+		if(empty($value)) $value = $icon;
+		else {
+			$value = $prependIcon
+      	? $icon.  ' ' .$value
+				: $value. ' ' .$icon;
 		}
-		
-		return '<a'.HTML::attributes($attributes).'>'.HTML::entities($value).$extra.'</a>';
+
+		// Store modified value
+		$this->currentButton['value'] = $value;
+
+		return $this;;
+	}
+
+	/**
+	 * Alias for with_icon
+	 */
+	public function prepend_with_icon($icon, $attributes = array())
+	{
+    return $this->with_icon($icon, $attributes);
+	}
+
+	/**
+	 * Alias for with_icon with $prependIcon to false
+	 */
+	public function append_with_icon($icon, $attributes = array())
+	{
+		return $this->with_icon($icon, $attributes, false);
 	}
 
 	/**
@@ -124,5 +177,33 @@ class Buttons
 
 			return call_user_func_array('static::'.$function, $parameters);
 		}
+	}
+
+	/**
+	 * Prints the current button in memory
+	 *
+	 * @return string A button
+	 */
+	public function __toString()
+	{
+		// Gather variables
+		extract($this->currentButton);
+
+		// Add btn to classes and fallback type
+		if(!isset($attributes['type'])) $attributes['type'] = 'button';
+		$attributes = Helpers::add_class($attributes, 'btn');
+
+		// Modify output if we have a dropdown
+		$extra = '';
+		if ($hasDropdown)
+		{
+			$attributes = Helpers::add_class($attributes, 'dropdown-toggle');
+			$extra = ' <span class="caret"></span>';
+			$attributes['data-toggle'] = 'dropdown';
+		}
+
+		// Write output according to tag
+		$tag = ($type == 'link') ? 'a' : 'button';
+		return '<'.$tag.HTML::attributes($attributes).'>'.(string)$value.$extra.'</'.$tag.'>';
 	}
 }
